@@ -9,7 +9,7 @@ var axios = require("axios");
 var cheerio = require("cheerio");
 
 // Require all models
-var db = require("./models");
+//var db = require("./models");
 
 var PORT = 3000;
 
@@ -26,10 +26,18 @@ app.use(express.json());
 // Make public a static folder
 app.use(express.static("public"));
 
-// Connect to the Mongo DB
-mongoose.connect("mongodb://localhost/", { useNewUrlParser: true });
+//Handlebars
+var exphbs = require("express-handlebars");
 
-//ROUTES
+app.engine("handlebars", exphbs({ defaultLayout: "main" }));
+app.set("view engine", "handlebars");
+
+// Connect to the Mongo DB
+mongoose.connect("mongodb://localhost:27017/scraperbikeDB", { useNewUrlParser: true });
+
+//---------ROUTES------------
+require("./controllers/scrape-routes.js")(app);
+
 
 // Start the server
 app.listen(PORT, function() {
