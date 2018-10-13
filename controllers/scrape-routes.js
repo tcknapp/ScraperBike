@@ -4,12 +4,15 @@ var cheerio = require("cheerio");
 var axios = require("axios");
 //Require models
 var db = require("../models");
+var Article = require("../models/Article.js");
+var Note = require("../models/Note.js");
+
 
 module.exports = function (app) {
 
   //Get Index Page
   app.get("/", function (req, res) {
-    res.redirect("/");
+    res.render("index");
   });
 
   //---Scraping---
@@ -18,6 +21,7 @@ module.exports = function (app) {
   app.get("/scrape", function (req, res) {
     // Grab the body of the html with axios
     axios.get("https://www.billboard.com/news/").then(function (response) {
+      // for(let k = 0; k < response.length && k < 10; k++) {}
       // Load into cheerio and save it to '$' for a selector
       var $ = cheerio.load(response.data);
 
@@ -48,12 +52,14 @@ module.exports = function (app) {
             return res.json(err);
           });
       });
-      // If we were able to successfully scrape and save an Article, send a message to the client
-      res.send("Scrape Complete");
-      //redirect to home
-      res.redirect("/");
+      // res.redirect("/");
+      // // If we were able to successfully scrape and save an Article, send a message to the client
+      // res.send("Scrape Complete");
+      // //redirect to home
+      // res.redirect("/");
     });
   });
+
 
   //---Articles---
 
@@ -63,13 +69,13 @@ module.exports = function (app) {
     db.Article.find({})
       .then(function (dbArticle) {
         // If we were able to successfully find Articles, send them back to the client
-        res.json(dbArticle);
         console.log(dbArticle);
+        res.json(dbArticle);
       })
       .catch(function (err) {
         res.json(err);
       })
-    res.render("index", res);
+    res.render("index");
   });
 
   // Route for grabbing a specific Article by id, populate it with it's note
@@ -107,5 +113,4 @@ module.exports = function (app) {
         res.json(err);
       });
   });
-
 };
