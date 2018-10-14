@@ -1,5 +1,6 @@
 //Dependencies
 //Scraping tools
+var express = require("express");
 var cheerio = require("cheerio");
 var axios = require("axios");
 //Require models
@@ -7,23 +8,31 @@ var db = require("../models");
 var Article = require("../models/Article.js");
 var Note = require("../models/Note.js");
 
-
 module.exports = function (app) {
 
-  //Get Index Page
+  //Get Index Page, load Articles
   app.get("/", function (req, res) {
-    res.render("index");
+    db.Article.find({})
+    .then(function(dbArticle){
+      var hbsObject = {
+        articles: dbArticle
+      };
+    res.render("index", hbsObject);
+  })
+    .catch(function(err) {
+      res.json(err);
+    });
   });
 
   //---Scraping---
 
   // A GET route for scraping the website
-  app.get("/scrape", function (req, res) {
+  app.get("/scrape", function (err, res, html) {
     // Grab the body of the html with axios
     axios.get("https://www.billboard.com/news/").then(function (response) {
       // for(let k = 0; k < response.length && k < 10; k++) {}
       // Load into cheerio and save it to '$' for a selector
-      var $ = cheerio.load(response.data);
+      var $ = cheerio.load(html);
 
       //Grab titles within Article, h3=content-title
       $("article h3").each(function (i, element) {
@@ -52,9 +61,9 @@ module.exports = function (app) {
             return res.json(err);
           });
       });
-      // res.redirect("/");
-      // // If we were able to successfully scrape and save an Article, send a message to the client
-      // res.send("Scrape Complete");
+      res.redirect("/articles");
+      // If we were able to successfully scrape and save an Article, send a message to the client
+      // res.send(dbArticle);
       // //redirect to home
       // res.redirect("/");
     });
@@ -63,20 +72,20 @@ module.exports = function (app) {
 
   //---Articles---
 
-  // Route for getting all Articles from the db
-  app.get("/articles", function (req, res) {
-    // Grab every document in the Articles collection
-    db.Article.find({})
-      .then(function (dbArticle) {
-        // If we were able to successfully find Articles, send them back to the client
-        console.log(dbArticle);
-        res.json(dbArticle);
-      })
-      .catch(function (err) {
-        res.json(err);
-      })
-    res.render("/saved");
-  });
+  // // Route for getting all Articles from the db
+  // app.get("/articles", function (req, res) {
+  //   // Grab every document in the Articles collection
+  //   db.Article.find({})
+  //     .then(function (dbArticle) {
+  //       // If we were able to successfully find Articles, send them back to the client
+  //       console.log(dbArticle);
+  //       res.json(dbArticle);
+  //     })
+  //     .catch(function (err) {
+  //       res.json(err);
+  //     })
+  //   // res.render("index",);
+  // });
 
   // Route for grabbing a specific Article by id, populate it with it's note
   app.get("/articles/:id", function (req, res) {
@@ -112,6 +121,5 @@ module.exports = function (app) {
         // If an error occurred, send it to the client
         res.json(err);
       });
-      res.render(dbArticle);
-  });
+  })
 };
