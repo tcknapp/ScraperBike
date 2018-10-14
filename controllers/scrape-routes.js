@@ -75,7 +75,7 @@ module.exports = function (app) {
       .catch(function (err) {
         res.json(err);
       })
-    res.render("index");
+    res.render("/saved");
   });
 
   // Route for grabbing a specific Article by id, populate it with it's note
@@ -112,5 +112,6 @@ module.exports = function (app) {
         // If an error occurred, send it to the client
         res.json(err);
       });
+      res.render(dbArticle);
   });
 };
